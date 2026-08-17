@@ -21,7 +21,7 @@ def test_register_success(client):
         'email': 'test@example.com',
         'password_hash': 'somepassword'
     })
-    assert response.status_code == 202
+    assert response.status_code == 201
 
 def test_register_duplicate_email(client):
     client.post('/api/register', json={'email': 'test@example.com', 'password_hash': 'pw'})
