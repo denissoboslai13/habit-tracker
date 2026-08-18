@@ -78,8 +78,8 @@ def test_delete_habit(client, auth_headers):
     assert habit_delete.status_code == 204
 
     habit_get = client.get('/api/habits')
-    assert habit_get.status_code == 200
-    assert len(habit_get.json) == 0
+    assert habit_get.status_code == 404
+    assert habit_get.json["error"] == "Not found"
 
 def test_delete_habit_wrong(client, auth_headers):
     # cannot delete habit of someone else

@@ -73,14 +73,14 @@ def test_delete_log(client, auth_headers, add_habit):
         "completed": True
     }, headers=auth_headers)
 
-    get_req = client.get(f'/api/habits/{habit_id}/logs')
+    get_req = client.get(f'/api/habits/{habit_id}/logs', headers=auth_headers)
     assert len(get_req.json) == 1
 
     log_id = request.json["id"]
     del_req = client.delete(f'/api/habits/{habit_id}/logs/{log_id}', headers=auth_headers)
     assert del_req.status_code == 204
 
-    get_req = client.get(f'/api/habits/{habit_id}/logs')
+    get_req = client.get(f'/api/habits/{habit_id}/logs', headers=auth_headers)
     assert len(get_req.json) == 0
 
 def test_delete_log_wrong(client, auth_headers, add_habit):

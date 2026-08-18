@@ -4,9 +4,11 @@ from .models import User, Habit, Log
 from argon2 import PasswordHasher
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from sqlalchemy.exc import IntegrityError
-import app
+from datetime import datetime
+import pytz
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from .utils import calculate_longest
 
 bp = Blueprint("main", __name__)
 ph = PasswordHasher()
@@ -101,6 +103,9 @@ def add_habit():
 @bp.get('/api/habits')
 def get_habits():
     habits = Habit.query.order_by(Habit.name.asc()).all()
+    if habits is None or len(habits) == 0:
+        return jsonify({"error": "Not found"}), 404
+    
     return [
         {
             "id": h.id,
@@ -140,10 +145,16 @@ def add_log(habit_id: int):
     if habit is None or habit.user_id != user.id:
         return jsonify({"error": "Not found"}), 404
 
-    print(habit_id, completed)
+    if content and "date" in content:
+        try:
+            log_date = datetime.strptime(content["date"], "%Y-%m-%d").date()
+        except ValueError:
+            return jsonify({"error": "Invalid date format, use YYYY-MM-DD"}), 400
+    else:
+        log_date = datetime.now(tz=pytz.timezone('Europe/Bratislava')).date()
 
     try:
-        l = Log(habit_id=habit_id, completed=completed)
+        l = Log(habit_id=habit.id, date=log_date, completed=completed)
         db.session.add(l)
         db.session.commit()
     except IntegrityError:
@@ -174,13 +185,65 @@ def delete_log(log_id: int, habit_id: int):
     return f"Deleted {log_id}", 204
 
 @bp.get('/api/habits/<int:habit_id>/logs')
-def get_logs(habit_id: int):
-    logs = Log.query.order_by(Log.id.asc()).all()
+@jwt_required()
+def get_logs(habit_id):
+    current_user = get_jwt_identity()
+    user = User.query.filter_by(email=current_user).first()
+
+    habit = Habit.query.get(habit_id)
+    if habit is None or habit.user_id != user.id:
+        return jsonify({"error": "Not found"}), 404
+    
+
+    from_date_str = request.args.get('from')
+    to_date_str = request.args.get('to')
+
+    query = Log.query.filter_by(habit_id=habit.id)
+
+    if from_date_str:
+        try:
+            from_date = datetime.strptime(from_date_str, "%Y-%m-%d").date()
+            query = query.filter(Log.date >= from_date)
+        except ValueError:
+            return jsonify({"error": "Invalid 'from' date format"}), 400
+
+    if to_date_str:
+        try:
+            to_date = datetime.strptime(to_date_str, "%Y-%m-%d").date()
+            query = query.filter(Log.date <= to_date)
+        except ValueError:
+            return jsonify({"error": "Invalid 'to' date format"}), 400
+
+    logs = query.order_by(Log.date.asc()).all()
     return [
+            {
+                "id": l.id,
+                "date": l.date,
+                "completed": l.completed
+            }
+            for l in logs
+        ], 200
+
+
+@bp.get('/api/habits/<int:habit_id>/stats')
+@jwt_required()
+def get_longest(habit_id):
+    current_user = get_jwt_identity()
+    user = User.query.filter_by(email=current_user).first()
+
+    habit = Habit.query.get(habit_id)
+    if habit is None or habit.user_id != user.id:
+        return jsonify({"error": "Not found"}), 404
+
+    query = Log.query.filter_by(habit_id=habit.id)
+    logs = query.order_by(Log.date.asc()).all()
+    longest = calculate_longest([
         {
             "id": l.id,
             "date": l.date,
             "completed": l.completed
         }
         for l in logs
-    ]
+    ])
+
+    return longest, 200
