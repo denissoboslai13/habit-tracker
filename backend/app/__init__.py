@@ -1,6 +1,6 @@
 from flask import Flask
 from .config import Config
-from .extensions import db
+from .extensions import db, jwt, limiter
 import os
 from flask_jwt_extended import JWTManager
 
@@ -12,7 +12,8 @@ def create_app(config_class: type = Config):
     os.makedirs(app.instance_path, exist_ok=True)
 
     db.init_app(app)
-    jwt = JWTManager(app)
+    jwt.init_app(app)
+    limiter.init_app(app)
 
     @app.get('/health')
     def health():

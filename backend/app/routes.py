@@ -1,8 +1,12 @@
 from flask import Blueprint, request, jsonify
-from .extensions import db
+from .extensions import db, limiter
 from .models import User, Habit, Log
 from argon2 import PasswordHasher
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
+from sqlalchemy.exc import IntegrityError
+import app
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 bp = Blueprint("main", __name__)
 ph = PasswordHasher()
@@ -35,6 +39,7 @@ def register():
     return jsonify({"message": "User registered successfully!"}), 201
 
 @bp.post('/api/login')
+@limiter.limit("5 per minute")
 def login():
     content = request.get_json(silent=True)
     email = content["email"]
@@ -42,7 +47,7 @@ def login():
 
     user = User.query.filter_by(email=email).first()
 
-    if email != user.email:
+    if not user:
         return jsonify({"msg": "Bad email"}), 401
 
     try:
@@ -61,12 +66,17 @@ def protected():
 
 
 @bp.delete('/api/users/<int:user_id>')
+@jwt_required()
 def delete_user(user_id: int):
+    current_user = get_jwt_identity()
     user = User.query.get_or_404(user_id)
-    db.session.delete(user)
-    db.session.commit()
 
-    return f"Deleted {user_id}", 204
+    if current_user == user.email:
+        db.session.delete(user)
+        db.session.commit()
+        return f"Deleted {user_id}", 204
+    else:
+        return jsonify({"error": "Unauthorized"}), 401
 
 @bp.post('/api/habits')
 @jwt_required()
@@ -75,18 +85,29 @@ def add_habit():
     name = content["name"]
 
     current_user = get_jwt_identity()
+    user = User.query.filter_by(email=current_user).first()
+    if user is None:
+        return jsonify({"error": "User not found"}), 404
+
     try:
-        user = User.query.filter_by(email=current_user).first()
-    except:
-        return jsonify({"error": "Invalid username or password"}), 401
+        h = Habit(user_id=user.id, name=name)
+        db.session.add(h)
+        db.session.commit()
+    except IntegrityError:
+        return jsonify({"error": "Duplicate entry"}), 409
 
-    print(user.id, name)
+    return jsonify({"id": h.id, "habit_name": name, "user_id": user.id}), 201
 
-    h = Habit(user_id=user.id, name=name)
-    db.session.add(h)
-    db.session.commit()
-
-    return f"Added {user.id, name}", 201
+@bp.get('/api/habits')
+def get_habits():
+    habits = Habit.query.order_by(Habit.name.asc()).all()
+    return [
+        {
+            "id": h.id,
+            "name": h.name
+        }
+        for h in habits
+    ]
 
 @bp.delete('/api/habits/<int:habit_id>')
 @jwt_required()
@@ -106,11 +127,10 @@ def delete_habit(habit_id: int):
 
     return f"Deleted {habit_id}", 204
 
-@bp.post('/api/logs')
+@bp.post('/api/habits/<int:habit_id>/logs')
 @jwt_required()
-def add_log():
+def add_log(habit_id: int):
     content = request.get_json(silent=True)
-    habit_id = content["habit_id"]
     completed = content["completed"]
 
     current_user = get_jwt_identity()
@@ -122,15 +142,18 @@ def add_log():
 
     print(habit_id, completed)
 
-    l = Log(habit_id=habit_id, completed=completed)
-    db.session.add(l)
-    db.session.commit()
+    try:
+        l = Log(habit_id=habit_id, completed=completed)
+        db.session.add(l)
+        db.session.commit()
+    except IntegrityError:
+        return jsonify({"error": "Duplicate entry"}), 409
 
-    return f"Added {habit_id, completed}", 201
+    return jsonify({"id": l.id, "habit_id": l.habit_id, "completed": l.completed}), 201
 
-@bp.delete('/api/logs/<int:log_id>')
+@bp.delete('/api/habits/<int:habit_id>/logs/<int:log_id>')
 @jwt_required()
-def delete_log(log_id: int):
+def delete_log(log_id: int, habit_id: int):
     current_user = get_jwt_identity()
     user = User.query.filter_by(email=current_user).first()
 
@@ -138,7 +161,7 @@ def delete_log(log_id: int):
     if log is None:
         return jsonify({"error": "Log not found"}), 404
 
-    habit = Habit.query.filter_by(id=log.habit_id).first()
+    habit = Habit.query.filter_by(id=habit_id).first()
     if habit is None:
         return jsonify({"error": "Habit not found"}), 404
 
@@ -149,3 +172,15 @@ def delete_log(log_id: int):
     db.session.commit()
 
     return f"Deleted {log_id}", 204
+
+@bp.get('/api/habits/<int:habit_id>/logs')
+def get_logs(habit_id: int):
+    logs = Log.query.order_by(Log.id.asc()).all()
+    return [
+        {
+            "id": l.id,
+            "date": l.date,
+            "completed": l.completed
+        }
+        for l in logs
+    ]
