@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from .extensions import db, limiter
 from .models import User, Habit, Log
 from argon2 import PasswordHasher
-from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, set_access_cookies
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 import pytz
@@ -15,8 +15,14 @@ ph = PasswordHasher()
 
 @bp.get('/')
 def home():
-    users = User.query.order_by(User.email.asc()).all()
-    return users
+    users = User.query.order_by(User.id.asc()).all()
+    return [
+            {
+                "id": u.id,
+                "name": u.email
+            }
+            for u in users
+        ]
 
 @bp.post('/api/register')
 def register():
@@ -54,9 +60,12 @@ def login():
 
     try:
         ph.verify(user.password_hash, password_hash)
-        access_token = create_access_token(identity=email)
-        return jsonify(access_token=access_token), 200
-    except:
+        access_token = create_access_token(identity=str(user.id))
+        resp = jsonify({"message": "logged in"})
+        set_access_cookies(resp, access_token)
+        return resp
+    except Exception as e:
+        print("ERROR:", e)
         return jsonify({"error": "Invalid username or password"}), 401
 
 @bp.route("/protected", methods=["GET"])
@@ -87,7 +96,7 @@ def add_habit():
     name = content["name"]
 
     current_user = get_jwt_identity()
-    user = User.query.filter_by(email=current_user).first()
+    user = User.query.filter_by(id=int(current_user)).first()
     if user is None:
         return jsonify({"error": "User not found"}), 404
 
@@ -101,8 +110,11 @@ def add_habit():
     return jsonify({"id": h.id, "habit_name": name, "user_id": user.id}), 201
 
 @bp.get('/api/habits')
+@jwt_required()
 def get_habits():
-    habits = Habit.query.order_by(Habit.name.asc()).all()
+    current_user = get_jwt_identity()
+    user = User.query.filter_by(id=int(current_user)).first()
+    habits = Habit.query.filter_by(user_id=user.id).all()
     if habits is None or len(habits) == 0:
         return jsonify({"error": "Not found"}), 404
     
@@ -118,7 +130,7 @@ def get_habits():
 @jwt_required()
 def delete_habit(habit_id: int):
     current_user = get_jwt_identity()
-    user = User.query.filter_by(email=current_user).first()
+    user = User.query.filter_by(id=int(current_user)).first()
 
     habit = Habit.query.filter_by(id=habit_id).first()
     if habit is None:
@@ -139,7 +151,7 @@ def add_log(habit_id: int):
     completed = content["completed"]
 
     current_user = get_jwt_identity()
-    user = User.query.filter_by(email=current_user).first()
+    user = User.query.filter_by(id=int(current_user)).first()
 
     habit = Habit.query.get(habit_id)
     if habit is None or habit.user_id != user.id:
@@ -166,7 +178,7 @@ def add_log(habit_id: int):
 @jwt_required()
 def delete_log(log_id: int, habit_id: int):
     current_user = get_jwt_identity()
-    user = User.query.filter_by(email=current_user).first()
+    user = User.query.filter_by(id=int(current_user)).first()
 
     log = Log.query.filter_by(id=log_id).first()
     if log is None:
@@ -188,7 +200,9 @@ def delete_log(log_id: int, habit_id: int):
 @jwt_required()
 def get_logs(habit_id):
     current_user = get_jwt_identity()
-    user = User.query.filter_by(email=current_user).first()
+    print(current_user)
+    user = User.query.filter_by(id=int(current_user)).first()
+    print("user: ", user)
 
     habit = Habit.query.get(habit_id)
     if habit is None or habit.user_id != user.id:
@@ -229,7 +243,7 @@ def get_logs(habit_id):
 @jwt_required()
 def get_longest(habit_id):
     current_user = get_jwt_identity()
-    user = User.query.filter_by(email=current_user).first()
+    user = User.query.filter_by(id=int(current_user)).first()
 
     habit = Habit.query.get(habit_id)
     if habit is None or habit.user_id != user.id:

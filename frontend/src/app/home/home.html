@@ -1,0 +1,7 @@
+@if (!(mainItems().length)) {
+    <p>Loading...</p>
+}
+
+@for (item of mainItems(); track item.id) {
+    <p>{{item.id}} {{item.name}}</p>
+    }

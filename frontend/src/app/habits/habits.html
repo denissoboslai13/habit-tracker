@@ -1,0 +1,7 @@
+@if (!(habits().length)) {
+    <p>Loading...</p>
+}
+
+@for (item of habits(); track item.id) {
+    <p>{{item.id}} {{item.name}}</p>
+    }

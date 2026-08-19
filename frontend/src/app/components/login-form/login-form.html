@@ -1,0 +1,10 @@
+<h2>Login form: </h2>
+<form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-4 justify-start items-start mt-6 px-4">
+  <label for="email">First Name: 
+    <input id="email" type="email" formControlName="email" required class="border-2 rounded-sm border-black ml-2"/>
+  </label>
+  <label for="password_hash">Last Name:
+    <input id="password_hash" type="password" formControlName="password_hash" required class="border-2 rounded-sm border-black ml-2"/>
+  </label>
+  <button type="submit" class="border-2 rounded-sm border-black px-4 py-1">Submit</button>
+</form>

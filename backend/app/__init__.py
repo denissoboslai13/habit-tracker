@@ -3,9 +3,11 @@ from .config import Config
 from .extensions import db, jwt, limiter
 import os
 from flask_jwt_extended import JWTManager
+from flask_cors import CORS
 
 def create_app(config_class: type = Config):
     app = Flask(__name__, instance_relative_config=True, template_folder="../templates", static_folder="../static")
+    CORS(app, origins=["http://127.0.0.1:4200"], supports_credentials=True)
 
     app.config.from_object(config_class)
 
