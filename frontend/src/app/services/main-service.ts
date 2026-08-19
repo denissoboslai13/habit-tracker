@@ -22,7 +22,7 @@ export class MainService {
     const url = `http://127.0.0.1:4141/api/habits`
     const csrfToken = getCookie('csrf_access_token');
     console.log(csrfToken)
-    return this.http.get<Array<Habit>>(url, {
+    return this.http.get<Array<Item>>(url, {
       withCredentials: true,
       headers: csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {}
     });

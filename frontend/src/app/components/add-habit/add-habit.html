@@ -1,0 +1,7 @@
+<h2>Add habit </h2>
+<form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-4 justify-start items-start mt-6 px-4">
+  <label for="name">Name of habit: 
+    <input id="name" type="text" formControlName="name" required class="border-2 rounded-sm border-black ml-2"/>
+  </label>
+  <button type="submit" class="border-2 rounded-sm border-black px-4 py-1">Submit</button>
+</form>

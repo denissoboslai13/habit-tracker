@@ -1,17 +1,18 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { MainService } from '../services/main-service';
 import { catchError } from 'rxjs';
-import { Habit } from '../models/habit.type';
+import { Item } from '../models/item.type';
+import { AddHabit } from '../components/add-habit/add-habit';
 
 @Component({
   selector: 'app-habits',
-  imports: [],
+  imports: [AddHabit],
   templateUrl: './habits.html',
   styles: ``,
 })
 export class Habits implements OnInit {
   mainService = inject(MainService)
-  habits = signal<Array<Habit>>([])
+  habits = signal<Array<Item>>([])
   protected readonly title = signal('frontend');
   ngOnInit(): void {
     this.mainService
