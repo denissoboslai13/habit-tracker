@@ -31,13 +31,14 @@ def auth_headers(client):
         'password_hash': 'testpassword123'
     })
     
-    token = res.json["access_token"]
-    return {"Authorization": f"Bearer {token}"}
+    csrf_token = client.get_cookie('csrf_access_token').value
+    return {'X-CSRF-TOKEN': csrf_token}
 
 @pytest.fixture
 def add_habit(client, auth_headers):
     response = client.post('/api/habits', json={
-        "name": "running"
+        "name": "running",
+        "color": "random"
     }, headers=auth_headers)
     return response.json
 
@@ -61,7 +62,7 @@ def test_log_interval(client, auth_headers, add_habit):
 
     get_req = client.get(f'/api/habits/{habit_id}/logs?from=2026-08-01&to=2026-08-09', headers=auth_headers)
     assert get_req.status_code == 200
-    assert len(get_req.json) == 9
+    assert len(get_req.json["logs"]) == 9
 
 def test_longest_streak(client, auth_headers, add_habit):
     # check if longest streak returned from the api matches the streak calculated in the test
@@ -95,7 +96,7 @@ def test_delete_cascading(client, auth_headers, add_habit):
     habit_get_before = client.get('/api/habits')
     log_get_before = client.get(f'/api/habits/{habit_id}/logs', headers=auth_headers)
     assert len(habit_get_before.json) == 1
-    assert len(log_get_before.json) == 1
+    assert len(log_get_before.json["logs"]) == 1
 
     deletion = client.delete('/api/users/1', headers=auth_headers)
     assert deletion.status_code == 204
@@ -103,5 +104,5 @@ def test_delete_cascading(client, auth_headers, add_habit):
     habit_get_after = client.get('/api/habits')
     log_get_after = client.get(f'/api/habits/{habit_id}/logs', headers=auth_headers)
     
-    assert habit_get_after.json["error"] == "Not found"
+    assert habit_get_after.json["error"] == "User not found"
     assert log_get_after.json["error"] == "Not found"

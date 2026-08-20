@@ -28,13 +28,14 @@ def auth_headers(client):
         'password_hash': 'testpassword123'
     })
     
-    token = res.json["access_token"]
-    return {"Authorization": f"Bearer {token}"}
+    csrf_token = client.get_cookie('csrf_access_token').value
+    return {'X-CSRF-TOKEN': csrf_token}
 
 def test_add_habit(client, auth_headers):
     # can you add a habit (testing for adding two habits aswell)
     habit_post = client.post('/api/habits', json={
-        "name": "running"
+        "name": "running",
+        "color": "random"
     }, headers=auth_headers)
     assert habit_post.status_code == 201
 
@@ -44,7 +45,8 @@ def test_add_habit(client, auth_headers):
 
     # checking if adding another one increases the count
     client.post('/api/habits', json={
-        "name": "cleaning"
+        "name": "cleaning",
+        "color": "random"
     }, headers=auth_headers)
 
     habits_get_multiple = client.get('/api/habits')
@@ -53,12 +55,14 @@ def test_add_habit(client, auth_headers):
 def test_add_habit_wrong(client, auth_headers):
     # no multiple habits
     post1 = client.post('/api/habits', json={
-        "name": "running"
+        "name": "running",
+        "color": "random"
     }, headers=auth_headers)
     assert post1.status_code == 201
 
     post2 = client.post('/api/habits', json={
-        "name": "running"
+        "name": "running",
+        "color": "random"
     }, headers=auth_headers)
 
     assert post2.status_code == 409
@@ -66,7 +70,8 @@ def test_add_habit_wrong(client, auth_headers):
 def test_delete_habit(client, auth_headers):
     # can delete a habit after its created, check for length after get and after delete
     habit_post = client.post('/api/habits', json={
-        "name": "running"
+        "name": "running",
+        "color": "random"
     }, headers=auth_headers)
     assert habit_post.status_code == 201
 
@@ -78,13 +83,14 @@ def test_delete_habit(client, auth_headers):
     assert habit_delete.status_code == 204
 
     habit_get = client.get('/api/habits')
-    assert habit_get.status_code == 404
-    assert habit_get.json["error"] == "Not found"
+    assert habit_get.status_code == 200
+    assert len(habit_get.json) == 0
 
 def test_delete_habit_wrong(client, auth_headers):
     # cannot delete habit of someone else
     habit_post = client.post('/api/habits', json={
-        "name": "running"
+        "name": "running",
+        "color": "random"
     }, headers=auth_headers)
     assert habit_post.status_code == 201
 
@@ -103,9 +109,8 @@ def test_delete_habit_wrong(client, auth_headers):
         'password_hash': 'testpassword123'
     })
     
-    token = res.json["access_token"]
-    header = {"Authorization": f"Bearer {token}"}
+    csrf_token = client.get_cookie('csrf_access_token').value
 
     # sending delete request to the id of the habit created by user 1, but with the token of user two
-    habit_delete = client.delete('/api/habits/1', headers=header)
+    habit_delete = client.delete('/api/habits/1', headers={'X-CSRF-TOKEN': csrf_token})
     assert habit_delete.status_code == 403

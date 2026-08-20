@@ -28,13 +28,14 @@ def auth_headers(client):
         'password_hash': 'testpassword123'
     })
     
-    token = res.json["access_token"]
-    return {"Authorization": f"Bearer {token}"}
+    csrf_token = client.get_cookie('csrf_access_token').value
+    return {'X-CSRF-TOKEN': csrf_token}
 
 @pytest.fixture
 def add_habit(client, auth_headers):
     response = client.post('/api/habits', json={
-        "name": "running"
+        "name": "running",
+        "color": "random"
     }, headers=auth_headers)
     return response.json
 
@@ -49,7 +50,7 @@ def test_add_log(client, auth_headers, add_habit):
     assert response.status_code == 201
 
     get_req = client.get(f'/api/habits/{habit_id}/logs')
-    assert len(get_req.json) == 1
+    assert len(get_req.json["logs"]) == 1
 
 def test_add_log_duplicate(client, auth_headers, add_habit):
     # you cant add a duplicate log
@@ -74,14 +75,14 @@ def test_delete_log(client, auth_headers, add_habit):
     }, headers=auth_headers)
 
     get_req = client.get(f'/api/habits/{habit_id}/logs', headers=auth_headers)
-    assert len(get_req.json) == 1
+    assert len(get_req.json["logs"]) == 1
 
     log_id = request.json["id"]
     del_req = client.delete(f'/api/habits/{habit_id}/logs/{log_id}', headers=auth_headers)
     assert del_req.status_code == 204
 
     get_req = client.get(f'/api/habits/{habit_id}/logs', headers=auth_headers)
-    assert len(get_req.json) == 0
+    assert len(get_req.json["logs"]) == 0
 
 def test_delete_log_wrong(client, auth_headers, add_habit):
     # you can delete a log, check length before and after delete
@@ -92,7 +93,7 @@ def test_delete_log_wrong(client, auth_headers, add_habit):
     }, headers=auth_headers)
 
     get_req = client.get(f'/api/habits/{habit_id}/logs')
-    assert len(get_req.json) == 1
+    assert len(get_req.json["logs"]) == 1
 
     #creating and logging in as another user
     client.post('/api/register', json={
@@ -105,11 +106,10 @@ def test_delete_log_wrong(client, auth_headers, add_habit):
         'password_hash': 'testpassword123'
     })
     
-    token = res.json["access_token"]
-    header = {"Authorization": f"Bearer {token}"}
+    csrf_token = client.get_cookie('csrf_access_token').value
 
     log_id = request.json["id"]
-    del_req = client.delete(f'/api/habits/{habit_id}/logs/{log_id}', headers=header)
+    del_req = client.delete(f'/api/habits/{habit_id}/logs/{log_id}', headers={'X-CSRF-TOKEN': csrf_token})
     assert del_req.status_code == 403
 
     get_req = client.get(f'/api/habits/{habit_id}/logs')

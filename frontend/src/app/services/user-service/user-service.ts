@@ -16,4 +16,8 @@ export class UserService {
     const url = `http://127.0.0.1:4141/api/login`
     return this.http.post(url, logCreds, { withCredentials: true })
   }
+  handleLogout(){
+    const url = `http://127.0.0.1:4141/api/logout`
+    return this.http.post(url, {}, { withCredentials: true })
+  }
 }

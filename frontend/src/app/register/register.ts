@@ -1,17 +1,15 @@
 import { Component, inject } from '@angular/core';
-import { UserService } from '../../services/user-service/user-service';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { UserService } from '../services/user-service/user-service';
 import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-login-form',
+  selector: 'app-register',
   imports: [ReactiveFormsModule],
-  templateUrl: './login-form.html',
+  templateUrl: './register.html',
   styles: ``,
 })
-
-export class LoginForm {
-  
+export class Register {
   userService = inject(UserService)
   private router = inject(Router);
 
@@ -23,10 +21,10 @@ export class LoginForm {
   onSubmit() {
     console.log(this.profileForm.getRawValue())
     this.userService
-    .handleLogin(this.profileForm.getRawValue())
+    .handleRegister(this.profileForm.getRawValue())
     .subscribe({
-      next: () => this.router.navigate(['/habits']),
+      next: () => this.router.navigate(['/login']),
       error: (err) => console.error('Login failed:', err)
-    });
+    })
   }
 }

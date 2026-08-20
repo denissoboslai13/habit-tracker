@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from .extensions import db, limiter
 from .models import User, Habit, Log
 from argon2 import PasswordHasher
-from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, set_access_cookies
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, set_access_cookies, unset_jwt_cookies
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 import pytz
@@ -67,6 +67,12 @@ def login():
     except Exception as e:
         print("ERROR:", e)
         return jsonify({"error": "Invalid username or password"}), 401
+    
+@bp.post('/api/logout')
+def logout():
+    resp = jsonify({"message": "logged out"})
+    unset_jwt_cookies(resp)
+    return resp
 
 @bp.route("/protected", methods=["GET"])
 @jwt_required()
@@ -82,7 +88,7 @@ def delete_user(user_id: int):
     current_user = get_jwt_identity()
     user = User.query.get_or_404(user_id)
 
-    if current_user == user.email:
+    if str(current_user) == str(user.id):
         db.session.delete(user)
         db.session.commit()
         return f"Deleted {user_id}", 204
@@ -94,6 +100,7 @@ def delete_user(user_id: int):
 def add_habit():
     content = request.get_json(silent=True)
     name = content["name"]
+    color = content["color"]
 
     current_user = get_jwt_identity()
     user = User.query.filter_by(id=int(current_user)).first()
@@ -101,30 +108,34 @@ def add_habit():
         return jsonify({"error": "User not found"}), 404
 
     try:
-        h = Habit(user_id=user.id, name=name)
+        h = Habit(user_id=user.id, name=name, color=color)
         db.session.add(h)
         db.session.commit()
     except IntegrityError:
         return jsonify({"error": "Duplicate entry"}), 409
 
-    return jsonify({"id": h.id, "habit_name": name, "user_id": user.id}), 201
+    return jsonify({"id": h.id, "name": name, "user_id": user.id, "color": h.color}), 201
 
 @bp.get('/api/habits')
 @jwt_required()
 def get_habits():
     current_user = get_jwt_identity()
     user = User.query.filter_by(id=int(current_user)).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    print("user: ", user)
     habits = Habit.query.filter_by(user_id=user.id).all()
     if habits is None or len(habits) == 0:
-        return jsonify({"error": "Not found"}), 404
+        return [], 200
     
     return [
         {
             "id": h.id,
-            "name": h.name
+            "name": h.name,
+            "color": h.color
         }
         for h in habits
-    ]
+    ], 200
 
 @bp.delete('/api/habits/<int:habit_id>')
 @jwt_required()
@@ -172,7 +183,7 @@ def add_log(habit_id: int):
     except IntegrityError:
         return jsonify({"error": "Duplicate entry"}), 409
 
-    return jsonify({"id": l.id, "habit_id": l.habit_id, "completed": l.completed}), 201
+    return jsonify({"id": l.id, "habit_id": l.habit_id, "completed": l.completed, "date": l.date}), 201
 
 @bp.delete('/api/habits/<int:habit_id>/logs/<int:log_id>')
 @jwt_required()
@@ -229,14 +240,20 @@ def get_logs(habit_id):
             return jsonify({"error": "Invalid 'to' date format"}), 400
 
     logs = query.order_by(Log.date.asc()).all()
-    return [
+    return {
+        "habit": {
+            "name": habit.name,
+            "color": habit.color,
+            "id": habit.id
+        },
+        "logs": [
             {
                 "id": l.id,
                 "date": l.date,
                 "completed": l.completed
             }
             for l in logs
-        ], 200
+        ]}, 200
 
 
 @bp.get('/api/habits/<int:habit_id>/stats')
@@ -261,3 +278,9 @@ def get_longest(habit_id):
     ])
 
     return longest, 200
+
+@bp.route('/api/me')
+@jwt_required()
+def me():
+    user_id = get_jwt_identity()
+    return jsonify({"user_id": user_id}), 200

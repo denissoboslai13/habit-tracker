@@ -20,6 +20,7 @@ class Habit(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     name = db.Column(db.String(100), nullable=False)
+    color = db.Column(db.String(10), default="#EF4444")
     created_at = db.Column(db.DateTime, nullable=False, default=lambda:datetime.now(tz=pytz.timezone('Europe/Bratislava')))
     logs = db.relationship('Log', backref='habit', cascade='all, delete-orphan')
 

@@ -43,7 +43,7 @@ def test_login(client):
     })
 
     assert response.status_code == 200
-    assert response.json["access_token"]
+    assert 'access_token_cookie' in response.headers.get('Set-Cookie', '')
 
 def test_wrong_login(client):
     # account doesnt exist or wrong credentials logging in
@@ -65,11 +65,11 @@ def test_delete_user(client):
         'email': 'test@example.com',
         'password_hash': 'somepassword'
     })
+    assert res.status_code == 200
 
-    token = res.json["access_token"]
-    header = {"Authorization": f"Bearer {token}"}
+    csrf_token = client.get_cookie('csrf_access_token').value
 
-    delete = client.delete('/api/users/1', headers=header)
+    delete = client.delete('/api/users/1', headers={'X-CSRF-TOKEN': csrf_token})
 
     assert delete.status_code == 204
 
@@ -90,11 +90,10 @@ def test_wrong_delete(client):
         'password_hash': 'somepassword'
     })
 
-    token = res.json["access_token"]
-    header = {"Authorization": f"Bearer {token}"}
+    csrf_token = client.get_cookie('csrf_access_token').value
 
     # different user, cant delete
-    delete_wrong = client.delete('/api/users/2', headers=header)
+    delete_wrong = client.delete('/api/users/2', headers={'X-CSRF-TOKEN': csrf_token})
     # no auth key, cant even delete your own account without auth key
     delete_no_key = client.delete('/api/users/1')
 

@@ -1,0 +1,20 @@
+<app-header></app-header>
+<h2>Name of habit: {{ habitName() }}, Color: {{ habitColor() }} </h2>
+<div class="w-5 h-5 rounded-full" [style.background-color]="habitColor()"></div>
+
+@if (habitLogs().length) {
+    <ul>
+        <p>Logs:</p>
+        @for (item of habitLogs(); track $index) {
+        <li class="flex flex-row gap-4 w-full justify-between bg-gray-200 py-1 px-4">
+            <p>{{item.date}} {{ item.completed }}</p>
+        </li>
+        }
+    </ul>
+}
+
+@if (!habitLogs().length) {
+    <p>No logs to see here, for now...</p>
+}
+
+<app-add-log [id]="id()" (logAdded)="onLogAdded($event)"></app-add-log>

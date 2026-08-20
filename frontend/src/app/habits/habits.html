@@ -1,9 +1,15 @@
-@if (!(habits().length)) {
-    <p>Loading...</p>
+<app-header></app-header>
+@if (!habits().length) {
+    <p>Nothing to see here, for now...</p>
 }
 
-@for (item of habits(); track item.id) {
-    <p>{{item.id}} {{item.name}}</p>
+<ul class="flex flex-col gap-2">
+@for (item of habits(); track $index) {
+    <li class="flex flex-row gap-4 w-full justify-between bg-gray-200 py-1 px-4">
+        <p (click)="detailClick(item)" class="w-max">{{$index + 1}} {{item.name}} {{item.color}}</p>
+        <button (click)="onDelete(item)">X</button>
+    </li>
     }
+</ul>
 
-<app-add-habit></app-add-habit>
+<app-add-habit (habitAdded)="onHabitAdded($event)"></app-add-habit>

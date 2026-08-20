@@ -1,0 +1,11 @@
+<form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="flex flex-col items-start">
+  <label for="date">Date:
+    <input id="date" type="date" formControlName="date" />
+  </label>
+
+  <label for="completed">Completed:
+    <input id="completed" type="checkbox" formControlName="completed" />
+  </label>
+
+  <button type="submit" [disabled]="!profileForm.valid">Submit</button>
+</form>
