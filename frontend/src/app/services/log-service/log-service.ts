@@ -27,5 +27,13 @@ export class LogService {
       headers: csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {}
     });
   }
-
+  getLongest(id: string) {
+    const url = `http://127.0.0.1:4141/api/habits/${id}/stats`
+    const csrfToken = getCookie('csrf_access_token');
+    console.log(csrfToken)
+    return this.http.get<Array<indLog>>(url, {
+      withCredentials: true,
+      headers: csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {}
+    });
+  }
 }

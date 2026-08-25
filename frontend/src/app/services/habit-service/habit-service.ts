@@ -3,6 +3,9 @@ import { inject, Injectable } from '@angular/core';
 import { Habit } from '../../models/habit.type';
 import { getCookie } from '../../helpers/getCookies';
 import { Item } from '../../models/item.type';
+import { NewHabit } from '../../models/newHabit.type';
+import { Updatedhabit } from '../../models/updatedHabit.type';
+import { Daily } from '../../models/daily.type';
 
 @Injectable({
   providedIn: 'root',
@@ -18,11 +21,29 @@ export class HabitService {
       headers: csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {}
     });
   }
-  postHabit(habit: Habit) {
+  getDaily() {
+    const url = `http://127.0.0.1:4141/api/habits/daily`
+    const csrfToken = getCookie('csrf_access_token');
+    console.log(csrfToken)
+    return this.http.get<Daily>(url, {
+      withCredentials: true,
+      headers: csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {}
+    });
+  }
+  postHabit(habit: NewHabit) {
     const url = `http://127.0.0.1:4141/api/habits`
     const csrfToken = getCookie('csrf_access_token');
     console.log(csrfToken)
     return this.http.post(url, habit, {
+      withCredentials: true,
+      headers: csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {}
+    });
+  }
+  updateHabit(id: string, habit: Updatedhabit) {
+    const url = `http://127.0.0.1:4141/api/habits/${id}`
+    const csrfToken = getCookie('csrf_access_token');
+    console.log(csrfToken)
+    return this.http.put(url, habit, {
       withCredentials: true,
       headers: csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {}
     });

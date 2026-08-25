@@ -155,6 +155,31 @@ def delete_habit(habit_id: int):
 
     return f"Deleted {habit_id}", 204
 
+@bp.put('/api/habits/<int:habit_id>')
+@jwt_required()
+def update_habit(habit_id: int):
+    content = request.get_json(silent=True)
+    name = content["name"]
+    current_user = get_jwt_identity()
+    user = User.query.filter_by(id=int(current_user)).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    print("user: ", user)
+    habit_to_update = Habit.query.filter_by(id=habit_id).first()
+    if habit_to_update is None:
+            return jsonify({"error": "Habit not found"}), 404
+    
+    if habit_to_update.user_id != user.id:
+        return jsonify({"error": "Forbidden"}), 403
+    
+    try:
+        habit_to_update.name = name
+        db.session.commit()
+    except IntegrityError:
+        return jsonify({"error": "Duplicate entry"}), 409
+
+    return jsonify({"id": habit_to_update.id, "name": habit_to_update.name, "color": habit_to_update.color}), 200
+
 @bp.post('/api/habits/<int:habit_id>/logs')
 @jwt_required()
 def add_log(habit_id: int):
@@ -254,6 +279,41 @@ def get_logs(habit_id):
             }
             for l in logs
         ]}, 200
+
+@bp.get('/api/habits/daily')
+@jwt_required()
+def get_daily():
+    current_user = get_jwt_identity()
+    print(current_user)
+    user = User.query.filter_by(id=int(current_user)).first()
+    print("user: ", user)
+
+    habits = Habit.query.filter_by(user_id=user.id).all()
+    print(habits)
+
+    if habits is None:
+        return jsonify({"error": "Not found"}), 404
+
+    logs = Log.query.join(Habit).filter(Habit.user_id == user.id, Log.date == datetime.now().date()).all()
+    print(logs)
+    return {
+        "habits": [
+            {
+                "name": habit.name,
+                "color": habit.color,
+                "id": habit.id
+            }
+            for habit in habits
+        ],
+        "logs": [
+            {
+                "id": l.id,
+                "date": l.date,
+                "completed": l.completed
+            }
+            for l in logs
+        ]
+    }, 200
 
 
 @bp.get('/api/habits/<int:habit_id>/stats')

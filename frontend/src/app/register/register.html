@@ -1,10 +1,25 @@
-<h2>Register form: </h2>
-<form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-4 justify-start items-start mt-6 px-4">
-  <label for="email">First Name: 
-    <input id="email" type="email" formControlName="email" required class="border-2 rounded-sm border-black ml-2"/>
-  </label>
-  <label for="password_hash">Last Name:
-    <input id="password_hash" type="password" formControlName="password_hash" required class="border-2 rounded-sm border-black ml-2"/>
-  </label>
-  <button type="submit" class="border-2 rounded-sm border-black px-4 py-1">Submit</button>
-</form>
+<main class="w-full min-h-full bg-[#2E3133] font-semibold flex items-center justify-center text-xl">
+  <div class="bg-[#252525] p-12 rounded-lg flex flex-col gap-8">
+    <div class="flex flex-col gap-2">
+      <h2 class="text-2xl text-[#FFF1E7]">Create an account</h2>
+      <span class="text-[#8A827D] flex flex-row gap-2">
+        <p>Or</p>
+        <a routerLink="/login" class="underline">Log in</a>
+      </span>
+    </div>
+    <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-4 justify-center mt-6">
+      <input id="email" type="email" formControlName="email" placeholder="Email" required class="rounded-sm bg-[#8A827D] px-2 py-1"/>
+      @if (profileForm.get('email')?.invalid && profileForm.get('email')?.touched) {
+        <p class="text-red-500 text-sm">
+          @if (profileForm.get('email')?.hasError('required')) {
+            Email is required
+          } @else if (profileForm.get('email')?.hasError('email')) {
+            Please enter a valid email
+          }
+        </p>
+      }
+      <input id="password_hash" type="password" formControlName="password_hash" placeholder="Enter your password" required class="rounded-sm bg-[#8A827D] px-2 py-1"/>
+      <button type="submit" class="bg-[#FFF1E7] py-1 px-4 rounded-md mt-4 disabled:text-[#2E3133] disabled:bg-[#8A827D]" [disabled]="!profileForm.valid">Submit</button>
+    </form>
+  </div>
+</main>

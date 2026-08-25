@@ -1,10 +1,29 @@
-<h2>Add habit </h2>
-<form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-4 justify-start items-start mt-6 px-4">
-  <label for="name">Name of habit: 
-    <input id="name" type="text" formControlName="name" required class="border-2 rounded-sm border-black ml-2"/>
-  </label>
-  <label for="color">Choose your color: 
-    <input id="color" type="color" formControlName="color" required class="border-2 rounded-sm border-black ml-2"/>
-  </label>
-  <button type="submit" class="border-2 rounded-sm border-black px-4 py-1">Submit</button>
-</form>
+<button class="bg-[#FFF1E7] py-2 px-4 rounded-md mt-8 text-black font-semibold flex flex-row gap-4 items-center" (click)="onVisClick()">
+  <p>Create a new habit</p>
+  <svg lucidePlus [size]="24"></svg>
+</button>
+
+@if (addVis()) {
+  <div class="absolute w-full inset-0 bg-black/75 z-10 -top-15 flex items-center justify-center" animate.enter="fade-in" animate.leave="fade-out">
+    <div class="bg-[#2E3133] p-6 rounded-xl">
+      <span class="flex flex-row items-center justify-between text-2xl font-semibold">
+        <h2>Add a habit</h2>
+        <button (click)="onVisClick()">X</button>
+      </span>
+      <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-4 justify-center mt-10 px-4">
+          <input id="name" type="text" formControlName="name" placeholder="Name" required class="rounded-sm bg-[#8A827D] px-2 py-1"/>
+          @if (profileForm.get('name')?.touched) {
+            <p class="text-red-500 text-sm">
+              @if (profileForm.get('name')?.hasError('required')) {
+                Name is required
+              }
+            </p>
+          }
+        <label for="color" class="flex items-center gap-3">Give it a color:
+          <input id="color" type="color" formControlName="color" required/>
+        </label>
+        <button type="submit" class="bg-[#FFF1E7] py-1 px-4 rounded-md mt-4 text-black font-semibold disabled:text-[#2E3133] disabled:bg-[#8A827D]" [disabled]="!profileForm.valid">Submit</button>
+      </form>
+    </div>
+  </div>
+}

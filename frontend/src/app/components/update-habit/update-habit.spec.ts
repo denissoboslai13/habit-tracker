@@ -1,28 +1,23 @@
 import { TestBed } from '@angular/core/testing';
-import { AddHabit } from './add-habit';
+import { UpdateHabit } from './update-habit';
 import { ToastrModule, ToastrService } from 'ngx-toastr';
 
 describe('Updating a habit validation', () => {
-  let component: AddHabit;
+  let component: UpdateHabit;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AddHabit, ToastrModule.forRoot()],
+      imports: [UpdateHabit, ToastrModule.forRoot()],
       providers: [ToastrService]
     }).compileComponents();
 
-    const fixture = TestBed.createComponent(AddHabit);
+    const fixture = TestBed.createComponent(UpdateHabit);
     component = fixture.componentInstance;
   });
 
   it('is invalid when name is empty', () => {
-    component.profileForm.patchValue({ name: '', color: '#something'});
+    component.profileForm.patchValue({ name: ''});
     expect(component.profileForm.valid).toBe(false);
-  });
-
-  it('color default works when left empty', () => {
-    component.profileForm.patchValue({ name: 'something test'});
-    expect(component.profileForm.get("color")?.value).toBe("#EF4444");
   });
 
   it('is valid with a name', () => {

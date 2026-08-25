@@ -1,15 +1,33 @@
 <app-header></app-header>
-@if (!habits().length) {
-    <p>Nothing to see here, for now...</p>
-}
-
-<ul class="flex flex-col gap-2">
-@for (item of habits(); track $index) {
-    <li class="flex flex-row gap-4 w-full justify-between bg-gray-200 py-1 px-4">
-        <p (click)="detailClick(item)" class="w-max">{{$index + 1}} {{item.name}} {{item.color}}</p>
-        <button (click)="onDelete(item)">X</button>
-    </li>
+<main class="w-full min-h-full bg-[#2E3133] p-12 text-xl text-[#FFF1E7] relative">
+    @if (!habits().length) {
+        <p>Nothing to see here, for now...</p>
+    } @else {
+        <div class="flex flex-col gap-4 w-full mb-12">
+            <span class="flex flex-row gap-3 items-center text-4xl">
+                <h2>Todays progress: </h2>
+                <p>{{ this.daily()?.completed }} / {{ this.daily()?.total }}</p>
+            </span>
+            <span class="flex flex-row gap-3 items-center text-2xl">
+                <progress max="{{ this.daily()?.total }}" value="{{ this.daily()?.completed }}" class="[&::-webkit-progress-bar]:rounded-sm [&::-webkit-progress-value]:rounded-sm [&::-webkit-progress-bar]:bg-[#8A827D] [&::-webkit-progress-value]:bg-[#FFF1E7] [&::-moz-progress-bar]:bg-[#FFF1E7] overflow-hidden" [class.[&::-webkit-progress-value]:bg-green-400]="isComplete()"></progress>
+                <p>{{ this.daily()?.percentage }}%</p>
+            </span>
+        </div>
+        <ul class="flex flex-col gap-4">
+        @for (item of habits(); track item.id) {
+            <li class="flex flex-row gap-4 w-full justify-between bg-[#252525] hover:bg-linear-to-t hover:from-[#FFF1E7]/10 hover:to-[#252525] transition py-3 px-6 rounded-lg border-t-3" [style.border-color]="item.color">
+                <p>{{item.name}}</p>
+                <span class="flex flex-row gap-4">
+                    <button aria-label="showDetail" (click)="detailClick(item)" class="border-2 w-8 h-8 flex items-center justify-center rounded-md"><svg lucideEye [size]="20"></svg></button>
+                    <button aria-label="editName" (click)="startEdit(item )" class="border-2 w-8 h-8 flex items-center justify-center rounded-md"><svg lucideWrench [size]="18"></svg></button>
+                    <button aria-label="deleteHabit" (click)="onDelete(item)" class="border-2 w-8 h-8 flex items-center justify-center rounded-md"><svg lucideX [size]="24"></svg></button>
+                </span>
+            </li>
+        }
+        @if (editingHabitId()) {
+            <app-update-habit [id]="editingHabitId()!" (cancelled)="cancelEdit()" (habitUpdated)="onHabitUpdated($event); cancelEdit()"></app-update-habit>
+        }
+        </ul>
     }
-</ul>
-
-<app-add-habit (habitAdded)="onHabitAdded($event)"></app-add-habit>
+    <app-add-habit (habitAdded)="onHabitAdded($event)"></app-add-habit>
+</main>

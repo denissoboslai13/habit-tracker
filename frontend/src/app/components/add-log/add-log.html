@@ -1,11 +1,21 @@
-<form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="flex flex-col items-start">
-  <label for="date">Date:
-    <input id="date" type="date" formControlName="date" />
-  </label>
+<button class="bg-[#FFF1E7] py-1 px-4 rounded-md mt-8 text-black font-semibold" (click)="onVisClick()">Completed a day?</button>
 
-  <label for="completed">Completed:
-    <input id="completed" type="checkbox" formControlName="completed" />
-  </label>
-
-  <button type="submit" [disabled]="!profileForm.valid">Submit</button>
-</form>
+@if (addVis()) {
+  <div class="absolute w-full inset-0 bg-black/75 z-10 -top-15 flex items-center justify-center -bottom-16" animate.enter="fade-in" animate.leave="fade-out">
+    <div class="bg-[#2E3133] p-6 rounded-xl flex flex-col gap-6">
+      <span class="flex flex-row items-center justify-between text-2xl font-semibold">
+        <h2>Add a habit</h2>
+        <button (click)="onVisClick()">X</button>
+      </span>
+      <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="flex flex-col items-start gap-2">
+        <label for="date">Date:
+          <input id="date" type="date" formControlName="date" />
+        </label>
+        <label for="completed">Completed?
+          <input id="completed" type="checkbox" formControlName="completed" />
+        </label>
+        <button type="submit" [disabled]="!profileForm.valid" class="bg-[#FFF1E7] py-1 px-4 rounded-md mt-6 text-black font-semibold">Submit</button>
+      </form>
+    </div>
+  </div>
+}
