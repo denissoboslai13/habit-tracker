@@ -84,7 +84,7 @@ export class Detail {
   logsByDate = computed(() => {
     const map = new Map<string, boolean>();
     for (const log of this.habitLogs()) {
-      const dateKey = new Date(log.date).toISOString().split('T')[0]; // "2026-08-20"
+      const dateKey = new Date(log.date).toISOString().split('T')[0];
       map.set(dateKey, log.completed);
     }
     return map;
