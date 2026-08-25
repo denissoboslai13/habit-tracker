@@ -46,14 +46,23 @@ jobs:
       - name: Install backend deps
         working-directory: ./backend
         run: pip install -r requirements.txt
+
       - name: Start backend
         working-directory: ./backend
         run: flask run --host=127.0.0.1 --port=4141 &
         env:
-          FLASK_APP: __init__.py
+          FLASK_APP: app.py
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
           TESTING: "true"
+
+      - name: Wait for backend to be ready
+        run: |
+          for i in {1..30}; do
+            curl -sf http://127.0.0.1:4141/api/health && break
+            echo "Waiting for backend..."
+            sleep 1
+          done
 
       - uses: actions/setup-node@v4
         with:
