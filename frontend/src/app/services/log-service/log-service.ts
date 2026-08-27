@@ -1,17 +1,18 @@
 import { inject, Injectable } from '@angular/core';
-import { getCookie } from '../../helpers/getCookies';
 import { HttpClient } from '@angular/common/http';
-import { Item } from '../../models/item.type';
 import { indLog, Log } from '../../models/log.type';
+import { UserService } from '../user-service/user-service';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class LogService {
   http = inject(HttpClient)
+  userService = inject(UserService)
   getInterval(id: string) {
-    const url = `https://habit-tracker-backend-mdg4.onrender.com/api/habits/${id}/logs`
-    const csrfToken = getCookie('csrf_access_token');
+    const url = `${environment.apiUrl}/api/habits/${id}/logs`
+    const csrfToken = this.userService.getCsrfToken();
     console.log(csrfToken)
     return this.http.get<Log>(url, {
       withCredentials: true,
@@ -19,8 +20,8 @@ export class LogService {
     });
   }
   postLog(id: string, log: indLog) {
-    const url = `https://habit-tracker-backend-mdg4.onrender.com/api/habits/${id}/logs`
-    const csrfToken = getCookie('csrf_access_token');
+    const url = `${environment.apiUrl}/api/habits/${id}/logs`
+    const csrfToken = this.userService.getCsrfToken();
     console.log(csrfToken)
     return this.http.post(url, log, {
       withCredentials: true,
@@ -28,8 +29,8 @@ export class LogService {
     });
   }
   getLongest(id: string) {
-    const url = `https://habit-tracker-backend-mdg4.onrender.com/api/habits/${id}/stats`
-    const csrfToken = getCookie('csrf_access_token');
+    const url = `${environment.apiUrl}/api/habits/${id}/stats`
+    const csrfToken = this.userService.getCsrfToken();
     console.log(csrfToken)
     return this.http.get<Array<indLog>>(url, {
       withCredentials: true,

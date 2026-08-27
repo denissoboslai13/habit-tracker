@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from .extensions import db, limiter
 from .models import User, Habit, Log
 from argon2 import PasswordHasher
-from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, set_access_cookies, unset_jwt_cookies
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, set_access_cookies, unset_jwt_cookies, get_csrf_token, get_jwt
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 import pytz
@@ -61,7 +61,10 @@ def login():
     try:
         ph.verify(user.password_hash, password_hash)
         access_token = create_access_token(identity=str(user.id))
-        resp = jsonify({"message": "logged in"})
+        resp = jsonify({
+            "message": "logged in",
+            "csrf_token": get_csrf_token(access_token)
+        })
         set_access_cookies(resp, access_token)
         return resp
     except Exception as e:
@@ -343,4 +346,7 @@ def get_longest(habit_id):
 @jwt_required()
 def me():
     user_id = get_jwt_identity()
-    return jsonify({"user_id": user_id}), 200
+    return jsonify({
+        "user_id": user_id,
+        "csrf_token": request.cookies.get('csrf_access_token')
+    }), 200
