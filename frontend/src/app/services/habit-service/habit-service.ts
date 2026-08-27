@@ -13,7 +13,7 @@ import { Daily } from '../../models/daily.type';
 export class HabitService {
   http = inject(HttpClient)
   getHabits() {
-    const url = `http://127.0.0.1:4141/api/habits`
+    const url = `https://habit-tracker-backend-mdg4.onrender.com/api/habits`
     const csrfToken = getCookie('csrf_access_token');
     console.log(csrfToken)
     return this.http.get<Array<Habit>>(url, {
@@ -22,7 +22,7 @@ export class HabitService {
     });
   }
   getDaily() {
-    const url = `http://127.0.0.1:4141/api/habits/daily`
+    const url = `https://habit-tracker-backend-mdg4.onrender.com/api/habits/daily`
     const csrfToken = getCookie('csrf_access_token');
     console.log(csrfToken)
     return this.http.get<Daily>(url, {
@@ -31,7 +31,7 @@ export class HabitService {
     });
   }
   postHabit(habit: NewHabit) {
-    const url = `http://127.0.0.1:4141/api/habits`
+    const url = `https://habit-tracker-backend-mdg4.onrender.com/api/habits`
     const csrfToken = getCookie('csrf_access_token');
     console.log(csrfToken)
     return this.http.post(url, habit, {
@@ -40,7 +40,7 @@ export class HabitService {
     });
   }
   updateHabit(id: string, habit: Updatedhabit) {
-    const url = `http://127.0.0.1:4141/api/habits/${id}`
+    const url = `https://habit-tracker-backend-mdg4.onrender.com/api/habits/${id}`
     const csrfToken = getCookie('csrf_access_token');
     console.log(csrfToken)
     return this.http.put(url, habit, {
@@ -49,7 +49,7 @@ export class HabitService {
     });
   }
   deleteHabit(habit: Habit) {
-    const url = `http://127.0.0.1:4141/api/habits/${habit.id}`
+    const url = `https://habit-tracker-backend-mdg4.onrender.com/api/habits/${habit.id}`
     const csrfToken = getCookie('csrf_access_token');
     console.log(csrfToken)
     return this.http.delete(url, {

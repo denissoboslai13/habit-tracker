@@ -9,15 +9,15 @@ import { RegCreds } from '../../models/regCreds.type';
 export class UserService {
   http = inject(HttpClient)
   handleRegister(regCreds: RegCreds) {
-    const url = `http://127.0.0.1:4141/api/register`
+    const url = `https://habit-tracker-backend-mdg4.onrender.com/api/register`
     return this.http.post(url, regCreds)
   }
   handleLogin(logCreds: RegCreds) {
-    const url = `http://127.0.0.1:4141/api/login`
+    const url = `https://habit-tracker-backend-mdg4.onrender.com/api/login`
     return this.http.post(url, logCreds, { withCredentials: true })
   }
   handleLogout(){
-    const url = `http://127.0.0.1:4141/api/logout`
+    const url = `https://habit-tracker-backend-mdg4.onrender.com/api/logout`
     return this.http.post(url, {}, { withCredentials: true })
   }
 }

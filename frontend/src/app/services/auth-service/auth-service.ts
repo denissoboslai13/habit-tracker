@@ -7,6 +7,6 @@ import { inject, Injectable } from '@angular/core';
 export class AuthService {
   http = inject(HttpClient)
   checkAuth() {
-    return this.http.get('http://127.0.0.1:4141/api/me', { withCredentials: true });
+    return this.http.get('https://habit-tracker-backend-mdg4.onrender.com/api/me', { withCredentials: true });
   }
 }

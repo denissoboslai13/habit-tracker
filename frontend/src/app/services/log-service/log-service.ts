@@ -10,7 +10,7 @@ import { indLog, Log } from '../../models/log.type';
 export class LogService {
   http = inject(HttpClient)
   getInterval(id: string) {
-    const url = `http://127.0.0.1:4141/api/habits/${id}/logs`
+    const url = `https://habit-tracker-backend-mdg4.onrender.com/api/habits/${id}/logs`
     const csrfToken = getCookie('csrf_access_token');
     console.log(csrfToken)
     return this.http.get<Log>(url, {
@@ -19,7 +19,7 @@ export class LogService {
     });
   }
   postLog(id: string, log: indLog) {
-    const url = `http://127.0.0.1:4141/api/habits/${id}/logs`
+    const url = `https://habit-tracker-backend-mdg4.onrender.com/api/habits/${id}/logs`
     const csrfToken = getCookie('csrf_access_token');
     console.log(csrfToken)
     return this.http.post(url, log, {
@@ -28,7 +28,7 @@ export class LogService {
     });
   }
   getLongest(id: string) {
-    const url = `http://127.0.0.1:4141/api/habits/${id}/stats`
+    const url = `https://habit-tracker-backend-mdg4.onrender.com/api/habits/${id}/stats`
     const csrfToken = getCookie('csrf_access_token');
     console.log(csrfToken)
     return this.http.get<Array<indLog>>(url, {
