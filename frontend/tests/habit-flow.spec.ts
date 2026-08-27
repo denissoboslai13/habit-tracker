@@ -16,6 +16,15 @@ test('user can register, log in, add rename and delete a habit, add a log, check
   await page.getByPlaceholder('Password').fill('somepassword123');
   await page.getByRole('button', { name: 'Submit' }).click();
 
+  const [response] = await Promise.all([
+    page.waitForResponse(resp => resp.url().includes('/api/login')),
+    page.getByRole('button', { name: 'Submit' }).click(),
+  ]);
+
+  console.log('Login status:', response.status());
+  const cookies = await page.context().cookies();
+  console.log('Cookies after login:', cookies);
+
   await expect(page).toHaveURL(/.*habits/);
 
   // dashboard shows empty, and create a new habit
