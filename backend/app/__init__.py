@@ -7,7 +7,7 @@ from flask_cors import CORS
 
 def create_app(config_class: type = Config):
     app = Flask(__name__, instance_relative_config=True, template_folder="../templates", static_folder="../static")
-    CORS(app, origins=[os.environ.get("FRONTEND_URL")], supports_credentials=True)
+    CORS(app, origins=[os.environ.get("FRONTEND_URL")], supports_credentials=True, allow_headers=["Content-Type", "X-CSRF-TOKEN", "Authorization"])
 
     app.config.from_object(config_class)
 
