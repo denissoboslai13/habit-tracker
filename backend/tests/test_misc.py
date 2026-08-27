@@ -44,7 +44,7 @@ def add_habit(client, auth_headers):
 
 def test_login_rate_limit(client):
     # test if login rate limit is implemented properly (max 5 per minute)
-    for _ in range(15):
+    for _ in range(30):
         client.post('/api/login', json={'email': 'test@example.com', 'password_hash': 'wrong'})
     
     response = client.post('/api/login', json={'email': 'test@example.com', 'password_hash': 'wrong'})

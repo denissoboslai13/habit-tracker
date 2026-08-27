@@ -47,7 +47,7 @@ def register():
     return jsonify({"message": "User registered successfully!"}), 201
 
 @bp.post('/api/login')
-@limiter.limit("25 per minute")
+@limiter.limit("30 per minute")
 def login():
     content = request.get_json(silent=True)
     email = content["email"]
