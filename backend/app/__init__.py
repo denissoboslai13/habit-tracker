@@ -5,13 +5,18 @@ import os
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 
-def create_app():
+def get_default_config():
+    if os.environ.get('FLASK_ENV') == 'production':
+        return ProductionConfig
+    return DevelopmentConfig
+
+def create_app(config_class: type = None):
     app = Flask(__name__, instance_relative_config=True, template_folder="../templates", static_folder="../static")
 
-    if os.environ.get('FLASK_ENV') == 'production':
-        app.config.from_object(ProductionConfig)
-    else:
-        app.config.from_object(DevelopmentConfig)
+    if config_class is None:
+        config_class = get_default_config()
+
+    app.config.from_object(config_class)
 
     CORS(app, origins=app.config['CORS_ORIGINS'], supports_credentials=True,
          allow_headers=["Content-Type", "X-CSRF-TOKEN"])

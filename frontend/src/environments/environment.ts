@@ -1,3 +1,3 @@
 export const environment = {
-  apiUrl: 'https://your-backend.onrender.com/api'
+  apiUrl: 'https://habit-tracker-backend-mdg4.onrender.com'
 };

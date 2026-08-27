@@ -23,3 +23,10 @@ class ProductionConfig(BaseConfig):
     JWT_COOKIE_SECURE = True
     JWT_COOKIE_SAMESITE = 'None'
     CORS_ORIGINS = [os.environ.get('FRONTEND_URL')]
+
+class TestConfig(BaseConfig):
+    JWT_COOKIE_CSRF_PROTECT = True
+    JWT_COOKIE_SAMESITE = 'Lax'
+    TESTING = True
+    CORS_ORIGINS = ['http://127.0.0.1:4200']
+    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
