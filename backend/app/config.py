@@ -16,7 +16,7 @@ class DevelopmentConfig(BaseConfig):
     DEBUG = True
     JWT_COOKIE_SECURE = False
     JWT_COOKIE_SAMESITE = 'Lax'
-    CORS_ORIGINS = ['http://127.0.0.1:4200']
+    CORS_ORIGINS = ['http://127.0.0.1:4200', 'http://localhost:4200']
 
 class ProductionConfig(BaseConfig):
     DEBUG = False
